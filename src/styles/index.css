@@ -76,5 +76,17 @@
   content: "\e615";
 }
 body {
-  background-color: red;
+  background-color: #f5f7f9;
+}
+body .nav_bar {
+  background-color: #3296fa;
+}
+.login_container .nav_bar {
+  background-color: #3296fa;
+}
+.login_container .nav_bar .van-nav-bar__title {
+  color: #fff;
+}
+.login_container .nav_bar .van-icon-undefined {
+  color: #fff;
 }
