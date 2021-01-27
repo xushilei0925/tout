@@ -2,15 +2,7 @@
   <div class="home-container">
     <!-- 导航栏 -->
     <van-nav-bar class="nav_bar" fixed>
-      <van-button
-        class="search-btn"
-        slot="title"
-        type="info"
-        size="small"
-        round
-        icon="search"
-        >搜索</van-button
-      >
+      <van-button class="search-btn" slot="title" type="info" size="small" round icon="search">搜索</van-button>
     </van-nav-bar>
     <!-- /导航栏 -->
     <!-- tag标签 -->
@@ -34,7 +26,7 @@
       close-icon-position="top-left"
       :style="{ height: '100%' }"
     >
-      <channelEdit :myChanelList="ChannelsList" :active="active"></channelEdit>
+      <channelEdit :myChanelList="ChannelsList" :active="active" @updateChannel="updateChannel"></channelEdit>
     </van-popup>
   </div>
 </template>
@@ -43,6 +35,8 @@
 import channelEdit from './channels/channelEdit'
 import Channel from './channels/channels.vue'
 import { getChannelsList } from '@/api/user.js'
+import { mapState } from 'vuex'
+import { getToken } from '@/utils/storage.js'
 export default {
   name: 'HomeIndex',
   components: {
@@ -57,7 +51,9 @@ export default {
       channelEdit: false //频道编辑显示隐藏
     }
   },
-  computed: {},
+  computed: {
+    ...mapState(['token'])
+  },
   watch: {},
   created() {
     this.loadChannelsList()
@@ -66,10 +62,34 @@ export default {
   methods: {
     // 加载频道列表
     async loadChannelsList() {
-      const { data: res } = await getChannelsList()
-      if (res.message == 'OK') {
-        this.ChannelsList = res.data.channels
+      try {
+        // 已登录，获取频道列表
+        if (this.token) {
+          const { data: res } = await getChannelsList()
+          if (res.message == 'OK') {
+            this.ChannelsList = res.data.channels
+          }
+        } else {
+          // 未登录，判断是否有本地存储
+          const a = getToken('TOKENCHANNEL')
+          // 有，拿来使用
+          if (a) {
+            this.ChannelsList = a
+          } else {
+            const { data: res } = await getChannelsList()
+            if (res.message == 'OK') {
+              this.ChannelsList = res.data.channels
+            }
+          }
+          // 没有，获取默认推荐
+        }
+      } catch (error) {
+        this.$toast('获取失败，请稍后重试')
       }
+    },
+    updateChannel(index, isChannelEdit = true) {
+      this.active = index
+      this.channelEdit = isChannelEdit
     }
   }
 }
